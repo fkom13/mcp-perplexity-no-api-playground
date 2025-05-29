@@ -1,42 +1,40 @@
 #!/usr/bin/env node
-import { askPlayground } from "./playground.js";
-import tools from "./.mcp.json" assert { type: "json" };
+import { main as playgroundMain } from './playground.js';
+import yargs from "yargs";
+import { hideBin } from "yargs/helpers";
+import fs from "fs";
 
-const args = process.argv.slice(2);
-let prompt = "";
-let model = "sonar-pro";
-
-for (let i = 0; i < args.length; i++) {
-    if ((args[i] === "--prompt" || args[i] === "-p") && args[i + 1]) {
-        prompt = args[i + 1];
-        i++;
-    } else if ((args[i] === "--model" || args[i] === "-m") && args[i + 1]) {
-        model = args[i + 1];
-        i++;
-    }
-}
-
-function showTools() {
-    process.stdout.write(JSON.stringify(tools));
-}
-
-if (args.includes("--tools")) {
-    showTools();
-    process.exit(0);
-}
-
-if (!prompt) {
-    process.stdout.write("Missing --prompt parameter\n");
-    process.exit(1);
-}
+const args = yargs(hideBin(process.argv))
+  .option('prompt', {
+    alias: 'p',
+    type: 'string',
+    description: 'Prompt à envoyer (sinon lecture sur stdin)'
+  })
+  .option('model', {
+    alias: 'm',
+    type: 'string',
+    description: 'Modèle à utiliser (par défaut sonar-pro)',
+    default: 'sonar-pro'
+  })
+  .help().argv;
 
 (async () => {
-    const result = await askPlayground(prompt, model);
-    process.stdout.write(
-        JSON.stringify({
-            tool: "perplexity-playground",
-            input: { prompt, model },
-            output: { result }
-        }) + "\n"
-    );
+  let prompt = args.prompt;
+  if (!prompt) {
+    prompt = await new Promise(resolve => {
+      let data = '';
+      process.stdin.setEncoding('utf8');
+      process.stdin.on('data', chunk => data += chunk);
+      process.stdin.on('end', () => resolve(data.trim()));
+    });
+  }
+  const model = args.model;
+  const result = await playgroundMain(prompt, model);
+  process.stdout.write(JSON.stringify(result) + '\n');
 })();
+
+// Toolschema exporté pour MCP stdio
+if (process.argv.includes('--toolschema')) {
+  const schema = JSON.parse(fs.readFileSync('.mcp.json', 'utf8'));
+  process.stdout.write(JSON.stringify(schema, null, 2) + '\n');
+}

@@ -1,22 +1,30 @@
 {
   "tools": [
     {
-      "name": "perplexity-playground",
-      "description": "Sends a prompt to Perplexity playground (https://playground.perplexity.ai/) via Puppeteer, returns model reply. Model can be one of r1-1776, sonar-pro, sonar, sonar-reasoning-pro, sonar-reasoning.",
-      "input_schema": {
+      "name": "perplexity_playground_query",
+      "description": "Interroge le playground Perplexity via Puppeteer. Paramètres : prompt, modèle (sonar-pro par défaut).",
+      "parameters": {
         "type": "object",
         "properties": {
-          "prompt": { "type": "string", "description": "Prompt/question to send" },
-          "model": { "type": "string", "description": "Model selection (default: sonar-pro)" }
+          "prompt": {
+            "type": "string",
+            "description": "Prompt à envoyer."
+          },
+          "model": {
+            "type": "string",
+            "description": "Modèle à utiliser (parmi [r1-1776, sonar-pro, sonar, sonar-reasoning-pro, sonar-reasoning]).",
+            "default": "sonar-pro"
+          }
         },
         "required": ["prompt"]
       },
-      "output_schema": {
+      "responses": {
         "type": "object",
         "properties": {
-          "result": { "type": "string", "description": "Model answer from the playground" }
-        },
-        "required": ["result"]
+          "prompt": {"type": "string"},
+          "model": {"type": "string"},
+          "result": {"type": "string"}
+        }
       }
     }
   ]

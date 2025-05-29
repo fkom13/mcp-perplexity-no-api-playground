@@ -1,7 +1,7 @@
 {
   "name": "mcp-perplexity-no-api-playground",
   "version": "1.0.0",
-  "description": "MCP compatible stdio server for Perplexity Playground (puppeteer, no API)",
+  "description": "MCP server utilisant Puppeteer pour le playground Perplexity",
   "main": "index.js",
   "bin": {
     "mcp-perplexity-no-api-playground": "./index.js"
@@ -11,7 +11,11 @@
     "start": "node index.js"
   },
   "dependencies": {
-    "puppeteer": "^21.3.8"
+    "puppeteer": "^21.3.8",
+    "yargs": "^17.7.2"
+  },
+  "engines": {
+    "node": ">=18"
   },
   "author": "Fkom13",
   "license": "MIT"
