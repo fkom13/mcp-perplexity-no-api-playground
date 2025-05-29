@@ -2,7 +2,6 @@
 
 const fs = require('fs');
 const yargs = require('yargs');
-const playgroundMain = require('./playground'); // Assure-toi que ce fichier existe !
 
 let mcpSchema;
 try {
@@ -42,6 +41,7 @@ if (argv._[0] === 'execute_tool') {
         process.stderr.write('{"error":"Paramètres JSON invalides"}\n');
         process.exit(1);
     }
+    const playgroundMain = require('./playground'); // Import dynamique UNIQUEMENT pour execute_tool
     if (argv.tool === 'perplexity_playground_query') {
         if (!params.prompt) {
             process.stderr.write('{"error":"Paramètre prompt obligatoire"}\n');
