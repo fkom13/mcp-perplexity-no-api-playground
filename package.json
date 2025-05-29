@@ -1,5 +1,5 @@
 {
-  "name": "mcp-perplexity-no-api-playground",
+  "name": "@fkom13/mcp-perplexity-no-api-playground",
   "version": "1.0.0",
   "description": "MCP server utilisant Puppeteer pour le playground Perplexity",
   "main": "index.js",
@@ -17,6 +17,6 @@
   "engines": {
     "node": ">=18"
   },
-  "author": "Fkom13",
+  "author": "fkom13",
   "license": "MIT"
 }
