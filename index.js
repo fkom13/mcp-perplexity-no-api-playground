@@ -21,8 +21,17 @@ const argv = yargs
     .argv;
 
 if (argv._[0] === 'list_tools') {
-    process.stdout.write(JSON.stringify(mcpSchema, null, 2));
-    process.exit(0);
+    // Bloquer toute sortie parasite sur stderr pour cette commande
+    console.log = () => {};
+    console.error = () => {};
+    console.warn = () => {};
+    try {
+        process.stdout.write(JSON.stringify(mcpSchema, null, 2));
+        process.exit(0);
+    } catch (e) {
+        process.stdout.write(JSON.stringify({ tools: [] }));
+        process.exit(0);
+    }
 }
 
 if (argv._[0] === 'execute_tool') {
