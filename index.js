@@ -1,40 +1,47 @@
 #!/usr/bin/env node
-import { main as playgroundMain } from './playground.js';
-import yargs from "yargs";
-import { hideBin } from "yargs/helpers";
-import fs from "fs";
 
-const args = yargs(hideBin(process.argv))
-  .option('prompt', {
-    alias: 'p',
-    type: 'string',
-    description: 'Prompt à envoyer (sinon lecture sur stdin)'
+const fs = require('fs');
+const yargs = require('yargs');
+const playgroundMain = require('./playground');
+const mcpSchema = require('./.mcp.json');
+
+const argv = yargs
+  .command('list_tools', 'Liste les tools disponibles')
+  .command('execute_tool', 'Exécute un tool', {
+    tool: { type: 'string', demandOption: true, describe: 'Tool à exécuter' },
+    params: { type: 'string', describe: 'Params JSON pour le tool' }
   })
-  .option('model', {
-    alias: 'm',
-    type: 'string',
-    description: 'Modèle à utiliser (par défaut sonar-pro)',
-    default: 'sonar-pro'
-  })
-  .help().argv;
+  .help(false)
+  .argv;
 
-(async () => {
-  let prompt = args.prompt;
-  if (!prompt) {
-    prompt = await new Promise(resolve => {
-      let data = '';
-      process.stdin.setEncoding('utf8');
-      process.stdin.on('data', chunk => data += chunk);
-      process.stdin.on('end', () => resolve(data.trim()));
-    });
-  }
-  const model = args.model;
-  const result = await playgroundMain(prompt, model);
-  process.stdout.write(JSON.stringify(result) + '\n');
-})();
-
-// Toolschema exporté pour MCP stdio
-if (process.argv.includes('--toolschema')) {
-  const schema = JSON.parse(fs.readFileSync('.mcp.json', 'utf8'));
-  process.stdout.write(JSON.stringify(schema, null, 2) + '\n');
+if (argv._[0] === 'list_tools') {
+  process.stdout.write(JSON.stringify(mcpSchema, null, 2));
+  process.exit(0);
 }
+
+if (argv._[0] === 'execute_tool') {
+  let params = {};
+  try {
+    if (argv.params) params = JSON.parse(argv.params);
+  } catch (e) {
+    process.stderr.write('{"error":"Paramètres JSON invalides"}\n');
+    process.exit(1);
+  }
+
+  if (argv.tool === 'perplexity_playground_query') {
+    playgroundMain(params.prompt, params.model || 'sonar-pro').then(out => {
+      process.stdout.write(JSON.stringify({ result: out }));
+      process.exit(0);
+    }).catch(err => {
+      process.stderr.write(JSON.stringify({ error: err.message }));
+      process.exit(1);
+    });
+  } else {
+    process.stderr.write('{"error":"Tool inconnu"}\n');
+    process.exit(1);
+  }
+  return;
+}
+
+process.stderr.write('{"error":"Commande inconnue, utilise list_tools ou execute_tool"}\n');
+process.exit(1);
