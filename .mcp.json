@@ -2,30 +2,28 @@
   "tools": [
     {
       "name": "perplexity_playground_query",
-      "description": "Interroge le playground Perplexity via Puppeteer. Paramètres : prompt, modèle (sonar-pro par défaut).",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "prompt": {
-            "type": "string",
-            "description": "Prompt à envoyer."
-          },
-          "model": {
-            "type": "string",
-            "description": "Modèle à utiliser (parmi [r1-1776, sonar-pro, sonar, sonar-reasoning-pro, sonar-reasoning]).",
-            "default": "sonar-pro"
-          }
+      "description": "Interroge Perplexity Playground via Puppeteer (prompt et modèle)",
+      "parameters": [
+        {
+          "name": "prompt",
+          "type": "string",
+          "required": true,
+          "description": "Le prompt/question à soumettre au LLM."
         },
-        "required": ["prompt"]
-      },
-      "responses": {
-        "type": "object",
-        "properties": {
-          "prompt": {"type": "string"},
-          "model": {"type": "string"},
-          "result": {"type": "string"}
+        {
+          "name": "model",
+          "type": "string",
+          "required": false,
+          "description": "Le modèle à utiliser (par défaut : sonar-pro)."
         }
-      }
+      ],
+      "responses": [
+        {
+          "name": "result",
+          "type": "string",
+          "description": "Réponse textuelle complète du LLM."
+        }
+      ]
     }
   ]
 }
