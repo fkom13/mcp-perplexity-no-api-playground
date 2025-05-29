@@ -1,6 +1,6 @@
-import puppeteer from 'puppeteer';
+const puppeteer = require('puppeteer');
 
-export async function main(prompt, model="sonar-pro") {
+async function playgroundMain(prompt, model = "sonar-pro") {
   const browser = await puppeteer.launch({headless: true});
   const page = await browser.newPage();
   await page.goto('https://playground.perplexity.ai/');
@@ -13,13 +13,13 @@ export async function main(prompt, model="sonar-pro") {
   await page.waitForSelector('textarea');
   await page.type('textarea', prompt);
 
-  // Envoyer le prompt (souvent Enter)
+  // Envoyer le prompt (Enter)
   await page.keyboard.press('Enter');
 
-  // Attendre que la réponse s’affiche
+  // Attendre que la réponse s'affiche
   await page.waitForSelector('.prose', {timeout: 30000});
 
-  // Récupérer la réponse LLM (HTML et text)
+  // Récupérer la réponse LLM (texte)
   const result = await page.evaluate(() => {
     const prose = document.querySelector('.prose');
     return prose ? prose.innerText : null;
@@ -29,3 +29,5 @@ export async function main(prompt, model="sonar-pro") {
 
   return { model, prompt, result };
 }
+
+module.exports = playgroundMain;
