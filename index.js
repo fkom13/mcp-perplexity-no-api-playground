@@ -1,65 +1,50 @@
 #!/usr/bin/env node
 
-const fs = require('fs');
-const yargs = require('yargs');
+const { McpServer, StdioServerTransport } = require('@modelcontextprotocol/sdk');
+const puppeteer = require('puppeteer');
 
-let mcpSchema;
-try {
-    mcpSchema = JSON.parse(fs.readFileSync('./.mcp.json', 'utf-8'));
-} catch (e) {
-    mcpSchema = {tools: []};
-}
-
-const argv = yargs
-    .command('list_tools', 'Liste les tools disponibles')
-    .command('execute_tool', 'Exécute un tool', {
-        tool: { type: 'string', demandOption: true, describe: 'Tool à exécuter' },
-        params: { type: 'string', describe: 'Paramètres JSON pour le tool' }
-    })
-    .help(false)
-    .argv;
-
-if (argv._[0] === 'list_tools') {
-    // Bloquer toute sortie parasite sur stderr pour cette commande
-    console.log = () => {};
-    console.error = () => {};
-    console.warn = () => {};
-    try {
-        process.stdout.write(JSON.stringify(mcpSchema, null, 2));
-        process.exit(0);
-    } catch (e) {
-        process.stdout.write(JSON.stringify({ tools: [] }));
-        process.exit(0);
-    }
-}
-
-if (argv._[0] === 'execute_tool') {
-    let params = {};
-    try {
-        if (argv.params) params = JSON.parse(argv.params);
-    } catch (e) {
-        process.stderr.write('{"error":"Paramètres JSON invalides"}\n');
-        process.exit(1);
-    }
-    const playgroundMain = require('./playground'); // Import dynamique UNIQUEMENT pour execute_tool
-    if (argv.tool === 'perplexity_playground_query') {
-        if (!params.prompt) {
-            process.stderr.write('{"error":"Paramètre prompt obligatoire"}\n');
-            process.exit(1);
+const transport = new StdioServerTransport();
+const server = new McpServer({
+  transport,
+  tools: [
+    {
+      name: 'perplexity_playground_query',
+      description: 'Interroge Perplexity Playground via Puppeteer (prompt et modèle)',
+      parameters: [
+        {
+          name: 'prompt',
+          type: 'string',
+          required: true,
+          description: 'Le prompt/question à soumettre au LLM.'
+        },
+        {
+          name: 'model',
+          type: 'string',
+          required: false,
+          description: 'Le modèle à utiliser (par défaut : sonar-pro).'
         }
-        playgroundMain(params.prompt, params.model || 'sonar-pro').then(out => {
-            process.stdout.write(JSON.stringify({ result: out }));
-            process.exit(0);
-        }).catch(err => {
-            process.stderr.write(JSON.stringify({ error: err.message }));
-            process.exit(1);
-        });
-    } else {
-        process.stderr.write('{"error":"Tool inconnu"}\n');
-        process.exit(1);
+      ],
+      responses: [
+        {
+          name: 'result',
+          type: 'string',
+          description: 'Réponse textuelle complète du LLM.'
+        }
+      ],
+      exec: async ({ prompt, model }) => {
+        const browser = await puppeteer.launch({ headless: true });
+        const page = await browser.newPage();
+        const usedModel = model || 'sonar-pro';
+        await page.goto('https://www.perplexity.ai/playground');
+        await page.type('textarea[placeholder="Enter a prompt..."]', prompt);
+        await page.select('select', usedModel);
+        await page.click('button[type="submit"]');
+        await page.waitForSelector('#result-output', { timeout: 30000 });
+        const resultText = await page.$eval('#result-output', el => el.innerText);
+        await browser.close();
+        return { result: resultText };
+      }
     }
-    return;
-}
-
-process.stderr.write('{"error":"Commande inconnue, utilise list_tools ou execute_tool"}\n');
-process.exit(1);
+  ]
+});
+server.start();
