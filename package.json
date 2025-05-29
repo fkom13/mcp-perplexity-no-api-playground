@@ -1,22 +1,19 @@
 {
   "name": "@fkom13/mcp-perplexity-no-api-playground",
-  "version": "1.0.0",
-  "description": "MCP server utilisant Puppeteer pour le playground Perplexity",
+  "version": "1.0.1",
+  "description": "MCP Perplexity Playground",
   "main": "index.js",
   "bin": {
-    "mcp-perplexity-no-api-playground": "./index.js"
+    "mcp-perplexity": "bin/mcp-perplexity.js"
   },
-  "type": "module",
   "scripts": {
-    "start": "node index.js"
+    "start": "node bin/mcp-perplexity.js"
   },
-  "dependencies": {
-    "puppeteer": "^21.3.8",
-    "yargs": "^17.7.2"
-  },
-  "engines": {
-    "node": ">=18"
-  },
+  "keywords": ["mcp", "perplexity", "sdk", "puppeteer"],
   "author": "fkom13",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^0.1.3",
+    "puppeteer": "^19.11.1"
+  }
 }
